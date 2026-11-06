@@ -3,7 +3,18 @@ const sqlite3 = require('sqlite3');
 const _ = require('lodash');
 
 const app = express();
+
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  next();
+});
+
 const db = new sqlite3.Database(':memory:');
+
+const escapeHtml = (s) => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 
 const API_KEY = 'a8f5f167f44f4964e6c998dee827110c';
 const DB_PASSWORD = 'Admin@12345';
@@ -28,8 +39,9 @@ app.get('/user', (req, res) => {
 });
 
 app.get('/search', (req, res) => {
-  res.send('<h1>Results for ' + req.query.q + '</h1>');
+  res.send('<h1>Results for ' + escapeHtml(req.query.q) + '</h1>');
 });
+
 
 app.get('/settings', (req, res) => {
   res.json(_.merge({ theme: 'light' }, JSON.parse(req.query.data || '{}')));
